@@ -28,22 +28,24 @@ export const QrProvider: React.FC<{ children: React.ReactNode }> = ({
     if (qrData) {
       if (selectedValue == "" || selectedValue == "add") {
         Swal.fire({
-          icon: "error",
-          title: "시트를 선택해주세요.",
-          showConfirmButton: true,
+          icon: "warning",
+          title: "시트를 선택해주세요",
+          text: "데이터를 저장할 시트를 먼저 선택해주세요.",
+          confirmButtonColor: "#f59e0b",
+          confirmButtonText: "확인",
         });
-        setTimeout(() => {
-          toast.dismiss();
-        }, 2000);
         return;
       } else {
         Swal.fire({
-          title: "인증 중...",
+          title: "데이터 인증 중...",
+          text: "QR 코드 데이터를 처리하고 있습니다.",
           showConfirmButton: false,
+          allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
           },
         });
+
         axios
           .post("./api/save", {
             data: qrData,
@@ -53,30 +55,48 @@ export const QrProvider: React.FC<{ children: React.ReactNode }> = ({
             if (response.status === 200) {
               Swal.fire({
                 icon: "success",
-                title: "인증 완료",
+                title: "인증 완료!",
+                text: "QR 코드 데이터가 성공적으로 저장되었습니다.",
                 showConfirmButton: false,
-                timer: 1500,
+                timer: 2000,
+                timerProgressBar: true,
+              });
+
+              // 성공 토스트 메시지
+              toast.success("데이터 저장 완료", {
+                position: toast.POSITION.TOP_CENTER,
+                autoClose: 2000,
               });
             }
           })
           .catch((error) => {
-            if (error.response.status === 500) {
+            if (error.response?.status === 500) {
               Swal.fire({
                 icon: "error",
-                title: "데이터 인증 실패.\n시트 헤더 확인 바랍니다.",
-                showConfirmButton: true,
+                title: "데이터 인증 실패",
+                text: "시트 헤더 형식을 확인해주세요. 올바른 컬럼명이 필요합니다.",
+                confirmButtonColor: "#ef4444",
+                confirmButtonText: "확인",
               });
             } else {
               Swal.fire({
                 icon: "error",
-                title: "오류 발생",
-                showConfirmButton: true,
+                title: "네트워크 오류",
+                text: "서버 연결에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                confirmButtonColor: "#ef4444",
+                confirmButtonText: "확인",
               });
             }
+
+            // 오류 토스트 메시지
+            toast.error("데이터 저장 실패", {
+              position: toast.POSITION.TOP_CENTER,
+              autoClose: 3000,
+            });
           });
       }
     }
-  }, [qrData]);
+  }, [qrData, selectedValue]);
 
   return (
     <QrContext.Provider
