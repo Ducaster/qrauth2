@@ -38,3 +38,12 @@ next-env.d.ts
 
 # 환경 변수 파일 무시
 .env
+
+# Google Cloud 서비스 계정 파일들
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tailwind.config.js
+!postcss.config.js
+!next.config.js
