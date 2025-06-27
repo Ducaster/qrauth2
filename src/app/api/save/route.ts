@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
   const newSheet = JSON.parse(await processText());
   console.log(newSheet);
 
-  let sheet = doc.sheetsByTitle[newSheet.newSheetName];
+  let sheet = doc.sheetsByTitle[newSheet.sheetName];
   if (!sheet) {
     try {
       console.log("Create a new sheet");
@@ -64,8 +64,38 @@ export async function PUT(req: NextRequest) {
     } catch (error) {
       return NextResponse.json({ success: true }, { status: 202 });
     }
+  } else {
+    // 기존 시트의 헤더 확인 (오류 발생 시 무시하고 진행)
+    try {
+      await sheet.loadHeaderRow();
+      const headers = sheet.headerValues;
+      const expectedHeaders = ["이름", "지역", "날짜", "시간"];
+
+      if (!headers || headers.length === 0) {
+        // 헤더가 없으면 헤더 추가
+        await sheet.setHeaderRow(expectedHeaders);
+      } else {
+        // 헤더가 올바른지 확인
+        const isValidHeaders = expectedHeaders.every(
+          (header, index) => headers[index] === header
+        );
+
+        if (!isValidHeaders) {
+          console.warn(
+            "Sheet headers don't match expected format, but continuing..."
+          );
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "Error checking sheet headers, continuing with data insertion:",
+        (error as Error).message
+      );
+      // 헤더 확인 실패 시에도 계속 진행
+    }
   }
 }
+
 export async function GET() {
   try {
     // 구글 문서를 불러옴
@@ -134,6 +164,35 @@ export async function POST(req: NextRequest) {
         headerValues: ["이름", "지역", "날짜", "시간"],
         title: sheetname,
       });
+    } else {
+      // 기존 시트의 헤더 확인 (오류 발생 시 무시하고 진행)
+      try {
+        await sheet.loadHeaderRow();
+        const headers = sheet.headerValues;
+        const expectedHeaders = ["이름", "지역", "날짜", "시간"];
+
+        if (!headers || headers.length === 0) {
+          // 헤더가 없으면 헤더 추가
+          await sheet.setHeaderRow(expectedHeaders);
+        } else {
+          // 헤더가 올바른지 확인
+          const isValidHeaders = expectedHeaders.every(
+            (header, index) => headers[index] === header
+          );
+
+          if (!isValidHeaders) {
+            console.warn(
+              "Sheet headers don't match expected format, but continuing..."
+            );
+          }
+        }
+      } catch (error) {
+        console.warn(
+          "Error checking sheet headers, continuing with data insertion:",
+          (error as Error).message
+        );
+        // 헤더 확인 실패 시에도 계속 진행
+      }
     }
 
     const rows = await sheet.getRows();

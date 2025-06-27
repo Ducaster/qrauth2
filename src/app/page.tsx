@@ -26,10 +26,6 @@ export default function Qrscan() {
     if (parsedData.includes("name")) {
       setQrData(parsedData);
       setScanStatus("success");
-      toast.success("QR 코드 인증 성공!", {
-        position: toast.POSITION.TOP_CENTER,
-        autoClose: 3000,
-      });
       setTimeout(() => {
         setScanStatus("idle");
       }, 3000);
