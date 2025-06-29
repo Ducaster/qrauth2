@@ -211,14 +211,69 @@ export default function Qrscan() {
             <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
               시스템 상태
             </h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-blue-100 text-xs sm:text-sm">
-                카메라 상태
-              </span>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-400"></div>
-              <span className="text-white text-xs sm:text-sm font-medium">
-                정상
-              </span>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-100 text-xs sm:text-sm">
+                  카메라 상태
+                </span>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-400"></div>
+                <span className="text-white text-xs sm:text-sm font-medium">
+                  정상
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-100 text-xs sm:text-sm">
+                  API 연결
+                </span>
+                <div
+                  className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400"
+                  id="api-status"
+                ></div>
+                <span
+                  className="text-white text-xs sm:text-sm font-medium"
+                  id="api-status-text"
+                >
+                  확인 필요
+                </span>
+              </div>
+              <button
+                onClick={async () => {
+                  const statusDot = document.getElementById("api-status");
+                  const statusText = document.getElementById("api-status-text");
+                  if (statusDot && statusText) {
+                    statusDot.className =
+                      "w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-400 animate-pulse";
+                    statusText.textContent = "테스트 중...";
+
+                    try {
+                      const response = await fetch("/api/test-connection");
+                      const data = await response.json();
+
+                      if (
+                        response.ok &&
+                        data.apiConnection === "✅ 연결 성공"
+                      ) {
+                        statusDot.className =
+                          "w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-400";
+                        statusText.textContent = "정상";
+                      } else {
+                        statusDot.className =
+                          "w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-400";
+                        statusText.textContent = "오류";
+                        console.error("API 연결 오류:", data);
+                      }
+                    } catch (error) {
+                      statusDot.className =
+                        "w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-400";
+                      statusText.textContent = "오류";
+                      console.error("API 연결 테스트 실패:", error);
+                    }
+                  }
+                }}
+                className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-xl transition-colors duration-200"
+              >
+                API 연결 테스트
+              </button>
             </div>
           </div>
         </div>
