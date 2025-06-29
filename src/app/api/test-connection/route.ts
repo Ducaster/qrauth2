@@ -14,6 +14,30 @@ interface ConnectionStatus {
   error: string | null;
 }
 
+// Private Key 처리 함수
+function processPrivateKey(key: string): string {
+  // 이미 올바른 형식인 경우
+  if (key.includes("-----BEGIN PRIVATE KEY-----")) {
+    return key;
+  }
+
+  // JSON에서 추출된 키인 경우 (이스케이프된 문자 처리)
+  let processedKey = key;
+
+  // \n을 실제 줄바꿈으로 변환
+  processedKey = processedKey.replace(/\\n/g, "\n");
+
+  // BEGIN/END 마커가 없는 경우 추가
+  if (!processedKey.includes("-----BEGIN PRIVATE KEY-----")) {
+    processedKey = "-----BEGIN PRIVATE KEY-----\n" + processedKey;
+  }
+  if (!processedKey.includes("-----END PRIVATE KEY-----")) {
+    processedKey = processedKey + "\n-----END PRIVATE KEY-----";
+  }
+
+  return processedKey;
+}
+
 export async function GET() {
   try {
     // 환경 변수 확인
@@ -41,8 +65,11 @@ export async function GET() {
 
     // Google Sheets API 연결 테스트
     try {
+      // Private Key 처리
+      const processedKey = processPrivateKey(key);
+
       const serviceAccountAuth = new JWT({
-        key: key,
+        key: processedKey,
         email: email,
         scopes: ["https://www.googleapis.com/auth/spreadsheets"],
       });
