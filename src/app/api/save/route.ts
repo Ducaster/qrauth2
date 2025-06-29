@@ -6,20 +6,35 @@ import { on } from "events";
 // 구글 문서를 불러오는 함수
 async function loadGoogleDoc() {
   try {
-    const key = process.env.REACT_APP_GOOGLE_PRIVATE_KEY;
+    const key = process.env.GOOGLE_PRIVATE_KEY;
+    const email = process.env.GOOGLE_API_EMAIL;
+    const sheetsId = process.env.GOOGLE_SHEETS_ID;
+
+    // 환경 변수 확인
+    if (!key) {
+      console.error("GOOGLE_PRIVATE_KEY 환경 변수가 설정되지 않았습니다.");
+      throw new Error("GOOGLE_PRIVATE_KEY not found");
+    }
+    if (!email) {
+      console.error("GOOGLE_API_EMAIL 환경 변수가 설정되지 않았습니다.");
+      throw new Error("GOOGLE_API_EMAIL not found");
+    }
+    if (!sheetsId) {
+      console.error("GOOGLE_SHEETS_ID 환경 변수가 설정되지 않았습니다.");
+      throw new Error("GOOGLE_SHEETS_ID not found");
+    }
+
     const serviceAccountAuth = new JWT({
       key: key,
-      email: process.env.REACT_APP_GOOGLE_API_EMAIL,
+      email: email,
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
-    const doc = new GoogleSpreadsheet(
-      process.env.REACT_APP_GOOGLE_SHEETS_ID || "",
-      serviceAccountAuth
-    );
+    const doc = new GoogleSpreadsheet(sheetsId, serviceAccountAuth);
     await doc.loadInfo();
     return doc;
   } catch (error) {
-    console.log(error);
+    console.error("Google Doc 로딩 실패:", error);
+    throw error;
   }
 }
 
